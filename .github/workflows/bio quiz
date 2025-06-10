@@ -1,0 +1,1353 @@
+import React, { useState, useEffect } from 'react';
+
+// A-Level Biology Specification Topics for AI Question Generation
+const specificationTopics = {
+  "Enzymes": {
+    keyPoints: [
+      "Active site structure and specificity",
+      "Enzyme-substrate complex formation",
+      "Factors affecting enzyme activity (temperature, pH, substrate concentration)",
+      "Competitive and non-competitive inhibition",
+      "Cofactors and coenzymes",
+      "Enzyme kinetics and Michaelis-Menten",
+      "Industrial and medical applications of enzymes"
+    ],
+    learningObjectives: [
+      "Explain the lock and key and induced fit models",
+      "Analyze enzyme kinetic graphs",
+      "Compare different types of enzyme inhibition",
+      "Evaluate the effect of environmental factors on enzyme function"
+    ]
+  },
+  "Cell Division": {
+    keyPoints: [
+      "Mitosis phases and chromosome behavior",
+      "Meiosis and genetic variation",
+      "Cell cycle regulation and checkpoints",
+      "Spindle formation and chromosome separation",
+      "Differences between animal and plant cell division",
+      "Cancer and uncontrolled cell division",
+      "Stem cells and differentiation"
+    ],
+    learningObjectives: [
+      "Compare mitosis and meiosis processes",
+      "Explain the importance of genetic variation",
+      "Analyze karyotypes and chromosome abnormalities",
+      "Evaluate the role of cell cycle checkpoints"
+    ]
+  },
+  "Photosynthesis": {
+    keyPoints: [
+      "Light-dependent reactions in thylakoids",
+      "Calvin cycle and carbon fixation",
+      "Chloroplast structure and function",
+      "Limiting factors and rate optimization",
+      "C3, C4, and CAM photosynthesis",
+      "Photosynthetic pigments and light absorption",
+      "ATP and NADPH production"
+    ],
+    learningObjectives: [
+      "Explain the relationship between light and dark reactions",
+      "Analyze limiting factor graphs",
+      "Compare different photosynthetic pathways",
+      "Evaluate adaptations for photosynthetic efficiency"
+    ]
+  },
+  "Respiration": {
+    keyPoints: [
+      "Glycolysis pathway and regulation",
+      "Krebs cycle and substrate-level phosphorylation",
+      "Electron transport chain and chemiosmosis",
+      "ATP synthesis and energy yield",
+      "Anaerobic respiration and fermentation",
+      "Respiratory substrates and RQ values",
+      "Mitochondrial structure and function"
+    ],
+    learningObjectives: [
+      "Trace the complete pathway of glucose oxidation",
+      "Calculate theoretical and actual ATP yields",
+      "Compare aerobic and anaerobic respiration",
+      "Analyze respiratory quotient data"
+    ]
+  },
+  "Cell Structure": {
+    keyPoints: [
+      "Prokaryotic vs eukaryotic cell organization",
+      "Organelle structure and function",
+      "Cell membrane structure and transport",
+      "Cytoskeleton and cell movement",
+      "Cell wall composition and function",
+      "Specialized cell adaptations",
+      "Cell communication and signaling"
+    ],
+    learningObjectives: [
+      "Compare prokaryotic and eukaryotic cells",
+      "Explain organelle specialization",
+      "Analyze membrane transport mechanisms",
+      "Evaluate cell adaptations for specific functions"
+    ]
+  },
+  "DNA & Genetics": {
+    keyPoints: [
+      "DNA structure and base pairing",
+      "DNA replication mechanisms",
+      "Transcription and RNA processing",
+      "Translation and protein synthesis",
+      "Gene expression regulation",
+      "Mutations and genetic variation",
+      "Genetic engineering techniques"
+    ],
+    learningObjectives: [
+      "Explain the central dogma of molecular biology",
+      "Analyze the effects of different mutation types",
+      "Compare gene expression in prokaryotes and eukaryotes",
+      "Evaluate genetic engineering applications"
+    ]
+  }
+};
+
+// AI Question Templates for Dynamic Generation
+const questionTemplates = {
+  "definition": {
+    template: "What is {concept}?",
+    options: ["Correct definition", "Plausible but incorrect", "Related but wrong", "Completely wrong"],
+    difficulty: "Easy"
+  },
+  "comparison": {
+    template: "What is the main difference between {concept1} and {concept2}?",
+    options: ["Correct difference", "Opposite difference", "Similarity not difference", "Unrelated concept"],
+    difficulty: "Medium"
+  },
+  "application": {
+    template: "In the context of {scenario}, what would happen to {process} if {condition}?",
+    options: ["Correct prediction", "Opposite effect", "No change claimed", "Unrelated outcome"],
+    difficulty: "Hard"
+  },
+  "analysis": {
+    template: "Which factor would have the greatest effect on {process} under {conditions}?",
+    options: ["Most significant factor", "Moderately significant", "Least significant", "No effect factor"],
+    difficulty: "Hard"
+  }
+};
+
+// Enhanced question bank with more comprehensive content
+const questionBank = {
+  "Enzymes": [
+    {
+      id: "ENZ001",
+      question: "What is the active site of an enzyme?",
+      options: ["The entire enzyme molecule", "The specific region where substrate binds", "The product of the reaction", "The cofactor binding site"],
+      correct: "The specific region where substrate binds",
+      difficulty: "Easy",
+      explanation: "The active site is a specific region on the enzyme where the substrate binds. It has a complementary shape to the substrate and contains amino acid residues that catalyze the reaction.",
+      topic: "Enzymes",
+      hint: "Think about where the enzyme and substrate interact during catalysis."
+    },
+    {
+      id: "ENZ002",
+      question: "What happens to enzyme activity as temperature increases beyond the optimum?",
+      options: ["Activity continues to increase", "Activity remains constant", "Activity decreases due to denaturation", "Activity doubles"],
+      correct: "Activity decreases due to denaturation",
+      difficulty: "Medium",
+      explanation: "Beyond the optimum temperature, the enzyme structure begins to break down (denaturation). The active site loses its shape, preventing substrate binding and reducing activity.",
+      topic: "Enzymes",
+      hint: "Consider what happens to protein structure at high temperatures."
+    },
+    {
+      id: "ENZ003",
+      question: "What is the effect of competitive inhibition on enzyme kinetics?",
+      options: ["Km increases, Vmax unchanged", "Km decreases, Vmax unchanged", "Km unchanged, Vmax decreases", "Both Km and Vmax increase"],
+      correct: "Km increases, Vmax unchanged",
+      difficulty: "Hard",
+      explanation: "Competitive inhibitors compete with substrate for the active site. This increases the apparent Km (requiring more substrate to reach half-maximal velocity) but doesn't change Vmax since the inhibition can be overcome with sufficient substrate.",
+      topic: "Enzymes",
+      hint: "Think about how a competitive inhibitor affects the binding of substrate to the enzyme."
+    }
+  ],
+  "Cell Division": [
+    {
+      id: "CD001", 
+      question: "What is the purpose of mitosis?",
+      options: ["Growth and repair", "Sexual reproduction", "Genetic variation", "Energy production"],
+      correct: "Growth and repair",
+      difficulty: "Easy",
+      explanation: "Mitosis produces two genetically identical diploid cells from one diploid cell. This is essential for growth, repair of tissues, and asexual reproduction in some organisms.",
+      topic: "Cell Division",
+      hint: "Think about why multicellular organisms need to make more cells."
+    },
+    {
+      id: "CD002",
+      question: "During which phase of meiosis does crossing over occur?",
+      options: ["Prophase I", "Metaphase I", "Anaphase I", "Prophase II"],
+      correct: "Prophase I",
+      difficulty: "Medium",
+      explanation: "Crossing over occurs during prophase I of meiosis when homologous chromosomes pair up and exchange genetic material, creating genetic diversity.",
+      topic: "Cell Division",
+      hint: "Think about when homologous chromosomes are paired together."
+    }
+  ],
+  "Photosynthesis": [
+    {
+      id: "PS001",
+      question: "What is the overall equation for photosynthesis?",
+      options: ["6CO2 + 6H2O → C6H12O6 + 6O2", "C6H12O6 + 6O2 → 6CO2 + 6H2O", "CO2 + H2O → CH2O + O2", "C6H12O6 → 2C2H5OH + 2CO2"],
+      correct: "6CO2 + 6H2O → C6H12O6 + 6O2",
+      difficulty: "Easy",
+      explanation: "This equation shows that photosynthesis converts carbon dioxide and water into glucose and oxygen using light energy. The process occurs in chloroplasts.",
+      topic: "Photosynthesis",
+      hint: "Remember that photosynthesis is essentially the reverse of respiration."
+    },
+    {
+      id: "PS002",
+      question: "Which factor is most likely to be limiting photosynthesis on a hot, sunny day?",
+      options: ["Light intensity", "Carbon dioxide concentration", "Temperature", "Water availability"],
+      correct: "Carbon dioxide concentration",
+      difficulty: "Medium",
+      explanation: "On a hot, sunny day, light intensity and temperature are high, so CO2 concentration becomes the limiting factor. Plants cannot photosynthesize faster than CO2 can be absorbed.",
+      topic: "Photosynthesis",
+      hint: "Consider which factors are already optimal on a hot, sunny day."
+    }
+  ],
+  "Respiration": [
+    {
+      id: "RESP001",
+      question: "Where does glycolysis occur in the cell?",
+      options: ["Mitochondria", "Nucleus", "Cytoplasm", "Endoplasmic reticulum"],
+      correct: "Cytoplasm",
+      difficulty: "Medium",
+      explanation: "Glycolysis occurs in the cytoplasm and breaks down glucose into pyruvate, producing ATP and NADH in the process.",
+      topic: "Respiration",
+      hint: "Think about which part of the cell doesn't require organelles."
+    },
+    {
+      id: "RESP002",
+      question: "What is the net gain of ATP molecules from one glucose molecule during glycolysis?",
+      options: ["2", "4", "6", "8"],
+      correct: "2",
+      difficulty: "Medium",
+      explanation: "Glycolysis produces 4 ATP molecules but uses 2 ATP molecules in the initial steps, resulting in a net gain of 2 ATP molecules per glucose.",
+      topic: "Respiration",
+      hint: "Remember to subtract the ATP invested from the ATP produced."
+    }
+  ],
+  "Cell Structure": [
+    {
+      id: "CS001",
+      question: "Which organelle is responsible for protein synthesis?",
+      options: ["Mitochondria", "Ribosomes", "Golgi apparatus", "Lysosomes"],
+      correct: "Ribosomes",
+      difficulty: "Easy",
+      explanation: "Ribosomes are the cellular structures responsible for protein synthesis, translating mRNA into polypeptide chains.",
+      topic: "Cell Structure",
+      hint: "Think about where translation occurs."
+    },
+    {
+      id: "CS002",
+      question: "What is the main difference between prokaryotic and eukaryotic cells?",
+      options: ["Size", "DNA content", "Membrane-bound nucleus", "Cell wall presence"],
+      correct: "Membrane-bound nucleus",
+      difficulty: "Easy",
+      explanation: "The key difference is that eukaryotic cells have a membrane-bound nucleus containing their DNA, while prokaryotic cells have their DNA freely floating in the cytoplasm.",
+      topic: "Cell Structure",
+      hint: "Think about where the genetic material is located in each type of cell."
+    }
+  ],
+  "DNA & Genetics": [
+    {
+      id: "DNA001",
+      question: "What is the complementary base pair for Adenine in DNA?",
+      options: ["Guanine", "Cytosine", "Thymine", "Uracil"],
+      correct: "Thymine",
+      difficulty: "Easy",
+      explanation: "In DNA, Adenine pairs with Thymine through two hydrogen bonds, while Guanine pairs with Cytosine through three hydrogen bonds.",
+      topic: "DNA & Genetics",
+      hint: "Remember the base pairing rules: A-T and G-C."
+    },
+    {
+      id: "DNA002",
+      question: "What is the role of DNA polymerase in replication?",
+      options: ["Unwinding the double helix", "Adding nucleotides to the growing strand", "Joining Okazaki fragments", "Proofreading for errors"],
+      correct: "Adding nucleotides to the growing strand",
+      difficulty: "Medium",
+      explanation: "DNA polymerase is the enzyme that adds complementary nucleotides to the growing DNA strand during replication, working in the 5' to 3' direction.",
+      topic: "DNA & Genetics",
+      hint: "Think about what happens during the elongation phase of DNA replication."
+    }
+  ]
+};
+
+// AI Question Generator Class
+class AIQuestionGenerator {
+  constructor() {
+    this.usedQuestionIds = new Set();
+  }
+
+  generateQuestion(topic, difficulty, keyPoint) {
+    const spec = specificationTopics[topic];
+    if (!spec) return null;
+
+    // Select appropriate template based on difficulty
+    const templates = Object.entries(questionTemplates).filter(([_, template]) => 
+      template.difficulty === difficulty || difficulty === 'Mixed'
+    );
+    
+    if (templates.length === 0) return null;
+    
+    const [templateName, template] = templates[Math.floor(Math.random() * templates.length)];
+    
+    // Generate unique ID
+    const questionId = `AI_${topic}_${templateName}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    
+    if (this.usedQuestionIds.has(questionId)) {
+      return this.generateQuestion(topic, difficulty, keyPoint); // Retry with different ID
+    }
+    
+    this.usedQuestionIds.add(questionId);
+
+    // Generate question based on template and topic
+    return this.createQuestionFromTemplate(questionId, topic, templateName, template, keyPoint, spec);
+  }
+
+  createQuestionFromTemplate(id, topic, templateName, template, keyPoint, spec) {
+    const questionData = this.getQuestionContent(topic, templateName, keyPoint, spec);
+    
+    return {
+      id,
+      question: questionData.question,
+      options: this.shuffleArray([...questionData.options]),
+      correct: questionData.correct,
+      difficulty: template.difficulty === 'Mixed' ? ['Easy', 'Medium', 'Hard'][Math.floor(Math.random() * 3)] : template.difficulty,
+      explanation: questionData.explanation,
+      topic,
+      hint: questionData.hint,
+      isAIGenerated: true,
+      generatedAt: new Date().toISOString()
+    };
+  }
+
+  getQuestionContent(topic, templateName, keyPoint, spec) {
+    // This is where we'd integrate with an actual AI service
+    // For now, we'll use smart templates with topic-specific content
+    
+    const contentMaps = {
+      "Enzymes": {
+        "definition": {
+          question: "What is enzyme specificity?",
+          correct: "The ability of an enzyme to bind only to specific substrates due to the shape and chemical properties of its active site",
+          options: [
+            "The ability of an enzyme to bind only to specific substrates due to the shape and chemical properties of its active site",
+            "The ability of an enzyme to work at any temperature or pH condition",
+            "The speed at which an enzyme catalyzes all types of biochemical reactions",
+            "The concentration of enzyme needed to achieve maximum reaction rate"
+          ],
+          explanation: "Enzyme specificity is determined by the precise three-dimensional structure of the active site, which complements the shape and chemical properties of specific substrates through the lock-and-key or induced-fit models.",
+          hint: "Think about why enzymes only work with certain substrates and not others."
+        },
+        "comparison": {
+          question: "What is the main difference between competitive and non-competitive inhibition?",
+          correct: "Competitive inhibitors bind to the active site, while non-competitive inhibitors bind to allosteric sites",
+          options: [
+            "Competitive inhibitors bind to the active site, while non-competitive inhibitors bind to allosteric sites",
+            "Competitive inhibitors are permanent, while non-competitive inhibitors are reversible",
+            "Competitive inhibitors increase enzyme activity, while non-competitive inhibitors decrease it",
+            "Competitive inhibitors work at high temperatures, while non-competitive inhibitors work at low temperatures"
+          ],
+          explanation: "Competitive inhibitors compete directly with the substrate for the active site, while non-competitive inhibitors bind to a different site (allosteric site) and change the enzyme's shape, affecting its activity.",
+          hint: "Consider where each type of inhibitor binds on the enzyme molecule."
+        }
+      },
+      "Cell Division": {
+        "definition": {
+          question: "What is the purpose of the G1/S checkpoint in the cell cycle?",
+          correct: "To ensure DNA is undamaged and the cell is ready for DNA replication",
+          options: [
+            "To ensure DNA is undamaged and the cell is ready for DNA replication",
+            "To check that all chromosomes are properly attached to spindle fibers",
+            "To verify that cytokinesis has completed successfully",
+            "To ensure the cell has reached the appropriate size for division"
+          ],
+          explanation: "The G1/S checkpoint (restriction point) monitors DNA integrity and ensures the cell has adequate resources before proceeding to S phase where DNA replication occurs.",
+          hint: "Think about what needs to be checked before DNA replication begins."
+        }
+      },
+      "Photosynthesis": {
+        "application": {
+          question: "In a greenhouse with high light intensity and temperature, what would limit the rate of photosynthesis?",
+          correct: "Carbon dioxide concentration",
+          options: [
+            "Carbon dioxide concentration",
+            "Light intensity",
+            "Temperature",
+            "Water availability"
+          ],
+          explanation: "When light intensity and temperature are already high and optimal, CO2 concentration becomes the limiting factor as plants cannot photosynthesize faster than CO2 can be absorbed and processed.",
+          hint: "Consider which factors are already optimal in this scenario."
+        }
+      }
+    };
+
+    const topicContent = contentMaps[topic];
+    if (topicContent && topicContent[templateName]) {
+      return topicContent[templateName];
+    }
+
+    // Fallback to basic template if specific content not available
+    return this.generateBasicQuestion(topic, keyPoint);
+  }
+
+  generateBasicQuestion(topic, keyPoint) {
+    return {
+      question: `Which statement about ${keyPoint.toLowerCase()} is correct?`,
+      correct: `The primary characteristic of ${keyPoint.toLowerCase()} in ${topic.toLowerCase()}`,
+      options: [
+        `The primary characteristic of ${keyPoint.toLowerCase()} in ${topic.toLowerCase()}`,
+        `An incorrect but plausible statement about ${keyPoint.toLowerCase()}`,
+        `A statement confusing ${keyPoint.toLowerCase()} with another concept`,
+        `A completely unrelated statement about ${topic.toLowerCase()}`
+      ],
+      explanation: `${keyPoint} is a fundamental concept in ${topic} that students should understand thoroughly for A-Level Biology.`,
+      hint: `Consider the key characteristics and functions related to ${keyPoint.toLowerCase()}.`
+    };
+  }
+
+  shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  reset() {
+    this.usedQuestionIds.clear();
+  }
+}
+
+// Enhanced UI Components
+const Button = ({ children, onClick, disabled = false, className = "", variant = "primary", size = "md" }) => {
+  const baseClass = "font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2";
+  
+  const variants = {
+    primary: "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl disabled:opacity-50",
+    secondary: "bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50",
+    success: "bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg",
+    danger: "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800"
+  };
+  
+  const sizes = {
+    sm: "px-3 py-1.5 text-sm rounded-md",
+    md: "px-4 py-2 rounded-lg",
+    lg: "px-6 py-3 text-lg rounded-xl"
+  };
+  
+  return (
+    <button 
+      className={`${baseClass} ${variants[variant]} ${sizes[size]} ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Card = ({ children, className = "", hover = false }) => (
+  <div className={`bg-white border border-gray-200 rounded-2xl shadow-lg p-6 ${hover ? 'hover:shadow-xl transition-shadow duration-300' : ''} ${className}`}>
+    {children}
+  </div>
+);
+
+const Badge = ({ children, variant = "default", size = "sm" }) => {
+  const variants = {
+    default: "bg-gray-100 text-gray-800",
+    primary: "bg-blue-100 text-blue-800",
+    success: "bg-green-100 text-green-800",
+    warning: "bg-yellow-100 text-yellow-800",
+    danger: "bg-red-100 text-red-800",
+    purple: "bg-purple-100 text-purple-800"
+  };
+  
+  const sizes = {
+    sm: "text-xs px-2 py-1",
+    md: "text-sm px-3 py-1.5"
+  };
+  
+  return (
+    <span className={`inline-flex items-center rounded-full font-medium ${variants[variant]} ${sizes[size]}`}>
+      {children}
+    </span>
+  );
+};
+
+const ProgressBar = ({ percentage, color = "blue" }) => {
+  const colors = {
+    blue: "from-blue-400 to-blue-600",
+    green: "from-green-400 to-green-600",
+    purple: "from-purple-400 to-purple-600"
+  };
+  
+  return (
+    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+      <div 
+        className={`h-full bg-gradient-to-r ${colors[color]} transition-all duration-700 ease-out`}
+        style={{ width: `${percentage}%` }}
+      ></div>
+    </div>
+  );
+};
+
+const AnimatedCounter = ({ value, duration = 1000 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const startTime = Date.now();
+    const startValue = displayValue;
+    
+    const updateValue = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      const currentValue = Math.floor(startValue + (value - startValue) * progress);
+      setDisplayValue(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateValue);
+      }
+    };
+    
+    updateValue();
+  }, [value, duration]);
+  
+  return <span>{displayValue}</span>;
+};
+
+// Main Quiz Component
+export default function EnhancedBiologyQuiz() {
+  const [studentName, setStudentName] = useState('');
+  const [started, setStarted] = useState(false);
+  const [selectedTopics, setSelectedTopics] = useState(['Enzymes']);
+  const [difficulty, setDifficulty] = useState('Mixed');
+  const [questionCount, setQuestionCount] = useState(20); // Fixed at 20 questions
+  const [aiQuestionRatio, setAiQuestionRatio] = useState(0.5); // 50% AI-generated questions by default
+  const [studyMode, setStudyMode] = useState(false);
+  const [showHints, setShowHints] = useState(true);
+  
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [questionSet, setQuestionSet] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [timedMode, setTimedMode] = useState(false);
+  const [quizComplete, setQuizComplete] = useState(false);
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [performanceHistory, setPerformanceHistory] = useState([]);
+  const [aiGenerator] = useState(new AIQuestionGenerator());
+
+  // Enhanced question generation with AI integration
+  const generateQuestionSet = () => {
+    let allQuestions = [];
+    const totalQuestions = 20; // Always 20 questions
+    const aiQuestionCount = Math.floor(totalQuestions * aiQuestionRatio);
+    const presetQuestionCount = totalQuestions - aiQuestionCount;
+    
+    // Get preset questions from question bank
+    selectedTopics.forEach(topic => {
+      const topicQuestions = questionBank[topic] || [];
+      if (difficulty !== 'Mixed') {
+        allQuestions = [...allQuestions, ...topicQuestions.filter(q => q.difficulty === difficulty)];
+      } else {
+        allQuestions = [...allQuestions, ...topicQuestions];
+      }
+    });
+
+    // Shuffle and limit preset questions
+    const shuffledPreset = [...allQuestions].sort(() => Math.random() - 0.5);
+    const selectedPreset = shuffledPreset.slice(0, presetQuestionCount);
+
+    // Generate AI questions to fill the gap
+    const aiQuestions = [];
+    const questionsPerTopic = Math.ceil(aiQuestionCount / selectedTopics.length);
+    
+    selectedTopics.forEach(topic => {
+      const spec = specificationTopics[topic];
+      if (!spec) return;
+      
+      for (let i = 0; i < questionsPerTopic && aiQuestions.length < aiQuestionCount; i++) {
+        const keyPoint = spec.keyPoints[Math.floor(Math.random() * spec.keyPoints.length)];
+        const questionDifficulty = difficulty === 'Mixed' 
+          ? ['Easy', 'Medium', 'Hard'][Math.floor(Math.random() * 3)]
+          : difficulty;
+          
+        const aiQuestion = aiGenerator.generateQuestion(topic, questionDifficulty, keyPoint);
+        if (aiQuestion) {
+          aiQuestions.push(aiQuestion);
+        }
+      }
+    });
+
+    // Combine and shuffle all questions
+    const finalQuestions = [...selectedPreset, ...aiQuestions];
+    
+    // Ensure exactly 20 questions
+    const shuffled = finalQuestions.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 20);
+  };
+
+  // Start quiz with enhanced AI generation
+  const startQuiz = () => {
+    aiGenerator.reset(); // Reset AI generator for new quiz
+    const questions = generateQuestionSet();
+    
+    if (questions.length < 20) {
+      alert(`Not enough questions available. Found ${questions.length} questions, but need exactly 20. Please select more topics or adjust difficulty.`);
+      return;
+    }
+    
+    setQuestionSet(questions);
+    setCurrentQuestion(questions[0]);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setUserAnswers([]);
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+    setShowHint(false);
+    setShowExplanation(false);
+    setQuizComplete(false);
+    setStarted(true);
+    
+    if (timedMode && !studyMode) {
+      setTimeLeft(20 * 45); // 20 questions × 45 seconds each
+    }
+  };
+
+  // Handle answer selection
+  const handleAnswerSelect = (answer) => {
+    if (showFeedback && !studyMode) return;
+    setSelectedAnswer(answer);
+    
+    if (studyMode) {
+      submitAnswer(answer);
+    }
+  };
+
+  // Submit answer with enhanced feedback
+  const submitAnswer = (answer = selectedAnswer) => {
+    if (!answer && !timedMode) return;
+    
+    const finalAnswer = answer || "No answer";
+    const isCorrect = finalAnswer === currentQuestion.correct;
+    
+    const answerData = {
+      question: currentQuestion,
+      userAnswer: finalAnswer,
+      correct: isCorrect,
+      timestamp: new Date().toISOString(),
+      timeSpent: timedMode ? (45 - (timeLeft % 45)) : null
+    };
+    
+    setUserAnswers([...userAnswers, answerData]);
+    
+    if (isCorrect) {
+      setScore(score + 1);
+    }
+    
+    setShowFeedback(true);
+    setShowExplanation(true);
+    
+    if (!studyMode) {
+      setTimeout(() => {
+        nextQuestion();
+      }, 4000);
+    }
+  };
+
+  // Next question
+  const nextQuestion = () => {
+    const nextIndex = currentQuestionIndex + 1;
+    
+    if (nextIndex >= questionSet.length) {
+      completeQuiz();
+    } else {
+      setCurrentQuestionIndex(nextIndex);
+      setCurrentQuestion(questionSet[nextIndex]);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setShowHint(false);
+      setShowExplanation(false);
+    }
+  };
+
+  // Complete quiz
+  const completeQuiz = () => {
+    setQuizComplete(true);
+  };
+
+  // Reset quiz
+  const resetQuiz = () => {
+    setStarted(false);
+    setQuizComplete(false);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setUserAnswers([]);
+    setTimeLeft(null);
+    setShowHint(false);
+    setShowExplanation(false);
+  };
+
+  // Format time
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Timer effect
+  useEffect(() => {
+    if (timedMode && timeLeft > 0 && started && !quizComplete && !studyMode) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timedMode && timeLeft === 0 && !studyMode && currentQuestion) {
+      submitAnswer();
+    }
+  }, [timeLeft, timedMode, started, quizComplete, studyMode, currentQuestion]);
+
+  // Enhanced quiz complete view
+  if (quizComplete) {
+    const percentage = Math.round((score / questionSet.length) * 100);
+    const correctAnswers = userAnswers.filter(answer => answer.correct);
+    const incorrectAnswers = userAnswers.filter(answer => !answer.correct);
+    
+    const getGradeInfo = (percentage) => {
+      if (percentage >= 90) return { grade: 'A*', emoji: '🎉', color: 'text-purple-600', bgColor: 'bg-purple-50' };
+      if (percentage >= 80) return { grade: 'A', emoji: '🌟', color: 'text-blue-600', bgColor: 'bg-blue-50' };
+      if (percentage >= 70) return { grade: 'B', emoji: '👏', color: 'text-green-600', bgColor: 'bg-green-50' };
+      if (percentage >= 60) return { grade: 'C', emoji: '👍', color: 'text-yellow-600', bgColor: 'bg-yellow-50' };
+      if (percentage >= 50) return { grade: 'D', emoji: '📚', color: 'text-orange-600', bgColor: 'bg-orange-50' };
+      return { grade: 'U', emoji: '💪', color: 'text-red-600', bgColor: 'bg-red-50' };
+    };
+    
+    const gradeInfo = getGradeInfo(percentage);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          <Card className={`text-center mb-8 ${gradeInfo.bgColor} border-2 border-opacity-20`}>
+            <div className="text-8xl mb-6">{gradeInfo.emoji}</div>
+            <h1 className="text-5xl font-bold mb-4">Quiz Complete!</h1>
+            <div className={`text-2xl font-bold mb-6 ${gradeInfo.color}`}>
+              Grade: {gradeInfo.grade}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                <div className="text-4xl font-bold text-blue-600">
+                  <AnimatedCounter value={score} />
+                </div>
+                <div className="text-blue-800 font-medium">Correct</div>
+              </div>
+              <div className="bg-purple-50 p-6 rounded-xl border border-purple-200">
+                <div className="text-4xl font-bold text-purple-600">
+                  <AnimatedCounter value={questionSet.length} />
+                </div>
+                <div className="text-purple-800 font-medium">Total</div>
+              </div>
+              <div className={`${percentage >= 70 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} p-6 rounded-xl border`}>
+                <div className={`text-4xl font-bold ${percentage >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                  <AnimatedCounter value={percentage} />%
+                </div>
+                <div className={`font-medium ${percentage >= 70 ? 'text-green-800' : 'text-red-800'}`}>Score</div>
+              </div>
+              <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200">
+                <div className="text-4xl font-bold text-indigo-600">
+                  {selectedTopics.length}
+                </div>
+                <div className="text-indigo-800 font-medium">Topics</div>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <Button onClick={resetQuiz} variant="primary" size="lg">
+                🔄 Take Another Quiz
+              </Button>
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {correctAnswers.length > 0 && (
+              <Card hover>
+                <h3 className="text-2xl font-bold mb-4 text-green-700 flex items-center gap-3">
+                  ✅ Well Done!
+                  <Badge variant="success" size="md">{correctAnswers.length} correct</Badge>
+                </h3>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {correctAnswers.map((answer, index) => (
+                    <div key={index} className="p-4 bg-green-50 rounded-xl border-l-4 border-green-400 hover:bg-green-100 transition-colors">
+                      <p className="font-semibold text-gray-800 mb-2">{answer.question.question}</p>
+                      <p className="text-green-700 font-medium flex items-center gap-2">
+                        <span className="text-xl">✓</span> {answer.userAnswer}
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant="success">{answer.question.difficulty}</Badge>
+                        <Badge variant="primary">{answer.question.topic}</Badge>
+                        {answer.question.isAIGenerated && <Badge variant="purple">AI Generated</Badge>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {incorrectAnswers.length > 0 && (
+              <Card hover>
+                <h3 className="text-2xl font-bold mb-4 text-red-700 flex items-center gap-3">
+                  📚 Study These
+                  <Badge variant="danger" size="md">{incorrectAnswers.length} to review</Badge>
+                </h3>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {incorrectAnswers.map((answer, index) => (
+                    <div key={index} className="p-4 bg-red-50 rounded-xl border-l-4 border-red-400 hover:bg-red-100 transition-colors">
+                      <p className="font-semibold text-gray-800 mb-3">{answer.question.question}</p>
+                      <p className="text-red-600 mb-2 flex items-center gap-2">
+                        <span className="text-xl">✗</span> Your answer: {answer.userAnswer}
+                      </p>
+                      <p className="text-green-600 font-medium mb-3 flex items-center gap-2">
+                        <span className="text-xl">✓</span> Correct: {answer.question.correct}
+                      </p>
+                      {answer.question.explanation && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm text-blue-800">
+                            <strong>💡 Explanation:</strong> {answer.question.explanation}
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex gap-2 mt-3">
+                        <Badge variant="warning">{answer.question.difficulty}</Badge>
+                        <Badge variant="primary">{answer.question.topic}</Badge>
+                        {answer.question.isAIGenerated && <Badge variant="purple">AI Generated</Badge>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced quiz in progress view
+  if (started) {
+    const progress = Math.round(((currentQuestionIndex + (showFeedback ? 1 : 0)) / questionSet.length) * 100);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              🧬 AI Biology Quiz
+            </h1>
+            <div className="flex items-center gap-6">
+              {timedMode && timeLeft !== null && !studyMode && (
+                <div className={`px-6 py-3 rounded-xl font-bold text-lg shadow-lg ${
+                  timeLeft < 60 ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-blue-100 text-blue-700 border border-blue-300'
+                }`}>
+                  ⏱️ {formatTime(timeLeft)}
+                </div>
+              )}
+              <div className="font-bold text-xl bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                Score: {score}/{showFeedback ? currentQuestionIndex + 1 : currentQuestionIndex}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-semibold text-lg">
+                Question {currentQuestionIndex + 1} of {questionSet.length}
+              </span>
+              <div className="flex items-center gap-4">
+                {studyMode && <Badge variant="purple" size="md">📚 Study Mode</Badge>}
+                {currentQuestion?.isAIGenerated && <Badge variant="purple" size="md">🤖 AI Generated</Badge>}
+                <span className="font-semibold text-lg">
+                  {progress}% Complete
+                </span>
+              </div>
+            </div>
+            <ProgressBar percentage={progress} color={progress > 66 ? 'green' : progress > 33 ? 'blue' : 'purple'} />
+          </div>
+
+          {currentQuestion && (
+            <Card className="mb-6 hover:shadow-xl transition-all duration-300">
+              <div className="flex justify-between items-start mb-8">
+                <h2 className="font-bold flex-1 pr-6 text-3xl leading-relaxed">
+                  {currentQuestion.question}
+                </h2>
+                <div className="flex flex-col gap-3 items-end">
+                  <Badge variant={
+                    currentQuestion.difficulty === 'Easy' ? 'success' : 
+                    currentQuestion.difficulty === 'Medium' ? 'warning' : 'danger'
+                  } size="md">
+                    {currentQuestion.difficulty}
+                  </Badge>
+                  <Badge variant="primary" size="md">{currentQuestion.topic}</Badge>
+                </div>
+              </div>
+
+              {showHints && currentQuestion.hint && (
+                <div className="mb-6">
+                  {!showHint ? (
+                    <Button 
+                      onClick={() => setShowHint(true)}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      💡 Show Hint
+                    </Button>
+                  ) : (
+                    <div className="p-4 bg-yellow-50 rounded-xl border-2 border-yellow-200 shadow-sm">
+                      <p className="text-yellow-800 font-medium">
+                        <strong>💡 Hint:</strong> {currentQuestion.hint}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-4 mb-8">
+                {currentQuestion.options.map((option, index) => {
+                  let buttonClass = "w-full text-left p-5 border-2 rounded-xl transition-all duration-300 text-lg ";
+                  
+                  if (showFeedback) {
+                    if (option === currentQuestion.correct) {
+                      buttonClass += "border-green-500 bg-green-50 text-green-800 shadow-lg transform scale-[1.02]";
+                    } else if (option === selectedAnswer && option !== currentQuestion.correct) {
+                      buttonClass += "border-red-500 bg-red-50 text-red-800 shadow-lg";
+                    } else {
+                      buttonClass += "border-gray-300 bg-gray-50 text-gray-600";
+                    }
+                  } else {
+                    if (option === selectedAnswer) {
+                      buttonClass += "border-blue-500 bg-blue-50 text-blue-800 shadow-lg transform scale-[1.02]";
+                    } else {
+                      buttonClass += "border-gray-300 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md";
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      className={buttonClass}
+                      onClick={() => handleAnswerSelect(option)}
+                      disabled={showFeedback && !studyMode}
+                    >
+                      <div className="flex items-center">
+                        <span className="font-bold mr-4 text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          {String.fromCharCode(65 + index)}.
+                        </span>
+                        <span className="flex-1">{option}</span>
+                        {showFeedback && option === currentQuestion.correct && (
+                          <span className="text-green-600 text-2xl">✓</span>
+                        )}
+                        {showFeedback && option === selectedAnswer && option !== currentQuestion.correct && (
+                          <span className="text-red-600 text-2xl">✗</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div>
+                  {currentQuestionIndex > 0 && studyMode && (
+                    <Button 
+                      onClick={() => {
+                        setCurrentQuestionIndex(currentQuestionIndex - 1);
+                        setCurrentQuestion(questionSet[currentQuestionIndex - 1]);
+                        setSelectedAnswer(null);
+                        setShowFeedback(false);
+                        setShowHint(false);
+                        setShowExplanation(false);
+                      }}
+                      variant="secondary"
+                      size="lg"
+                    >
+                      ← Previous
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  {!showFeedback && !studyMode ? (
+                    <Button 
+                      onClick={() => submitAnswer()}
+                      disabled={!selectedAnswer}
+                      variant="primary"
+                      size="lg"
+                    >
+                      Submit Answer
+                    </Button>
+                  ) : (
+                    <>
+                      {currentQuestionIndex < questionSet.length - 1 ? (
+                        <Button 
+                          onClick={nextQuestion}
+                          variant="primary"
+                          size="lg"
+                        >
+                          Next Question →
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={completeQuiz}
+                          variant="success"
+                          size="lg"
+                        >
+                          🎯 Complete Quiz
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {showFeedback && showExplanation && (
+                <div className={`p-6 rounded-xl mt-6 border-2 shadow-lg ${
+                  selectedAnswer === currentQuestion.correct 
+                    ? 'bg-green-50 border-green-300' 
+                    : 'bg-red-50 border-red-300'
+                }`}>
+                  <p className={`font-bold mb-4 text-2xl flex items-center gap-3 ${
+                    selectedAnswer === currentQuestion.correct 
+                      ? 'text-green-800' 
+                      : 'text-red-800'
+                  }`}>
+                    {selectedAnswer === currentQuestion.correct ? (
+                      <>🎉 Excellent! That's correct!</>
+                    ) : (
+                      <>❌ Not quite right</>
+                    )}
+                  </p>
+                  {currentQuestion.explanation && (
+                    <div className="bg-white p-4 rounded-lg border-l-4 border-blue-400 shadow-sm">
+                      <p className="text-gray-700 text-lg leading-relaxed">
+                        <strong>💡 Explanation:</strong> {currentQuestion.explanation}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced initial setup view
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-8xl mb-6">🧬</div>
+          <h1 className="font-bold mb-6 text-6xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            AI-Enhanced Biology Quiz
+          </h1>
+          <p className="text-gray-600 text-2xl max-w-3xl mx-auto leading-relaxed">
+            Master A-Level Biology with intelligent, adaptive learning powered by advanced AI feedback systems
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-2 hover:shadow-xl transition-all duration-300">
+            <h2 className="font-bold mb-8 text-3xl flex items-center gap-3">
+              🎯 Configure Your Quiz
+            </h2>
+            
+            <div className="mb-8">
+              <label className="block font-semibold mb-3 text-lg">Student Name *</label>
+              <input
+                type="text"
+                className="w-full p-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-lg transition-all duration-200"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="Enter your name to get started..."
+              />
+            </div>
+
+            <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border-2 border-purple-200">
+              <h3 className="font-bold mb-4 text-purple-800 text-xl flex items-center gap-2">
+                🤖 AI Question Generation System
+              </h3>
+              
+              <div className="space-y-4">
+                <label className="flex items-start cursor-pointer hover:bg-white hover:bg-opacity-50 p-3 rounded-lg transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={studyMode}
+                    onChange={(e) => setStudyMode(e.target.checked)}
+                    className="mr-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded h-5 w-5 mt-1"
+                  />
+                  <div>
+                    <span className="font-semibold text-lg">📚 Intelligent Study Mode</span>
+                    <p className="text-purple-700 mt-1">Get instant AI-powered explanations and adaptive feedback for deeper understanding</p>
+                  </div>
+                </label>
+
+                <div>
+                  <label className="block font-semibold mb-2 text-purple-800">
+                    AI-Generated Questions: {Math.round(aiQuestionRatio * 100)}% ({Math.floor(20 * aiQuestionRatio)} out of 20)
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={aiQuestionRatio}
+                    onChange={(e) => setAiQuestionRatio(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-sm text-purple-600 mt-1">
+                    <span>All Preset</span>
+                    <span>Balanced</span>
+                    <span>All AI-Generated</span>
+                  </div>
+                  <p className="text-sm text-purple-700 mt-2">
+                    AI questions are dynamically created from A-Level Biology specifications to provide fresh, relevant practice.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <label className="block font-semibold mb-4 text-lg">
+                Select Biology Topics ({selectedTopics.length} selected)
+              </label>
+              <div className="grid grid-cols-2 gap-4 max-h-64 overflow-y-auto border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
+                {Object.keys(questionBank).map((topic) => {
+                  const questionCount = questionBank[topic]?.length || 0;
+                  return (
+                    <label key={topic} className="flex items-center cursor-pointer hover:bg-white p-3 rounded-lg transition-colors group">
+                      <input
+                        type="checkbox"
+                        checked={selectedTopics.includes(topic)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTopics([...selectedTopics, topic]);
+                          } else {
+                            setSelectedTopics(selectedTopics.filter(t => t !== topic));
+                          }
+                        }}
+                        className="mr-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded h-4 w-4"
+                      />
+                      <div className="flex-1">
+                        <span className="font-semibold group-hover:text-blue-600 transition-colors">{topic}</span>
+                        <p className="text-sm text-gray-500">{questionCount} preset questions</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="block font-semibold mb-3 text-lg">Difficulty Level</label>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="w-full p-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-lg"
+                >
+                  <option value="Easy">🟢 Easy - Foundation concepts</option>
+                  <option value="Medium">🟡 Medium - Standard A-Level</option>
+                  <option value="Hard">🔴 Hard - Advanced application</option>
+                  <option value="Mixed">🎯 Mixed - Balanced challenge</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block font-semibold mb-3 text-lg">Quiz Length</label>
+                <div className="w-full p-4 border-2 border-gray-300 rounded-xl bg-gray-50 text-lg">
+                  <div className="flex items-center justify-between">
+                    <span>📝 20 Questions (Fixed)</span>
+                    <span className="text-sm text-gray-600">~15-20 minutes</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Standardized length ensures comprehensive coverage of selected topics
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              {!studyMode && (
+                <label className="flex items-center cursor-pointer hover:bg-yellow-50 p-3 rounded-lg transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={timedMode}
+                    onChange={(e) => setTimedMode(e.target.checked)}
+                    className="mr-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded h-5 w-5"
+                  />
+                  <div>
+                    <span className="font-semibold text-lg">⏱️ Exam Simulation Mode</span>
+                    <p className="text-gray-600">15 minutes total (45s per question) - practice under exam pressure</p>
+                  </div>
+                </label>
+              )}
+              
+              <label className="flex items-center cursor-pointer hover:bg-yellow-50 p-3 rounded-lg transition-colors">
+                <input
+                  type="checkbox"
+                  checked={showHints}
+                  onChange={(e) => setShowHints(e.target.checked)}
+                  className="mr-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded h-5 w-5"
+                />
+                <div>
+                  <span className="font-semibold text-lg">💡 Smart Hint System</span>
+                  <p className="text-gray-600">Get contextual hints to guide your thinking process</p>
+                </div>
+              </label>
+            </div>
+
+            <Button
+              onClick={startQuiz}
+              disabled={!studentName.trim() || selectedTopics.length === 0}
+              className="w-full text-xl py-6"
+              variant="primary"
+              size="lg"
+            >
+              🚀 Launch AI-Enhanced Quiz
+            </Button>
+          </Card>
+
+          <div className="space-y-6">
+            <Card hover>
+              <h3 className="font-bold mb-4 text-xl flex items-center gap-2">
+                🤖 AI Question Generation
+              </h3>
+              <div className="space-y-3">
+                <div className="border-l-4 border-purple-400 pl-3">
+                  <div className="font-semibold text-sm">Specification-Aligned</div>
+                  <div className="text-xs text-gray-600">Questions generated from official A-Level Biology specifications</div>
+                </div>
+                <div className="border-l-4 border-blue-400 pl-3">
+                  <div className="font-semibold text-sm">Dynamic Difficulty</div>
+                  <div className="text-xs text-gray-600">AI adapts question complexity based on learning objectives</div>
+                </div>
+                <div className="border-l-4 border-green-400 pl-3">
+                  <div className="font-semibold text-sm">Fresh Content</div>
+                  <div className="text-xs text-gray-600">New questions generated each time for varied practice</div>
+                </div>
+                <div className="border-l-4 border-yellow-400 pl-3">
+                  <div className="font-semibold text-sm">Smart Templates</div>
+                  <div className="text-xs text-gray-600">Multiple question types: definitions, comparisons, applications</div>
+                </div>
+              </div>
+              <p className="text-gray-600 mt-4 text-sm leading-relaxed">
+                Every quiz combines curated questions with AI-generated content for comprehensive, specification-aligned practice.
+              </p>
+            </Card>
+
+            <Card hover>
+              <h3 className="font-bold mb-4 text-xl flex items-center gap-2">
+                📚 A-Level Specification Topics
+              </h3>
+              <div className="space-y-3">
+                {Object.entries(specificationTopics).map(([topic, spec]) => (
+                  <div key={topic} className="border-l-4 border-blue-400 pl-3">
+                    <div className="font-semibold text-sm">{topic}</div>
+                    <div className="text-xs text-gray-600">{spec.keyPoints.length} specification points covered</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-gray-600 mt-4 text-sm leading-relaxed">
+                Each quiz draws from official A-Level Biology specifications, ensuring comprehensive coverage of exam content.
+              </p>
+            </Card>
+
+            <Card hover>
+              <h3 className="font-bold mb-4 text-xl flex items-center gap-2">
+                🎯 Advanced Features
+              </h3>
+              <ul className="text-gray-700 space-y-3">
+                <li className="flex items-start gap-3">
+                  <span className="text-xl">🤖</span>
+                  <div>
+                    <div className="font-semibold">AI Question Generation</div>
+                    <div className="text-sm text-gray-600">Dynamic questions created from specification content</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-xl">📝</span>
+                  <div>
+                    <div className="font-semibold">Fixed 20-Question Format</div>
+                    <div className="text-sm text-gray-600">Comprehensive assessment ensuring topic coverage</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-xl">💡</span>
+                  <div>
+                    <div className="font-semibold">Smart Hint System</div>
+                    <div className="text-sm text-gray-600">Contextual guidance without revealing answers</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-xl">⏱️</span>
+                  <div>
+                    <div className="font-semibold">Timed Exam Practice</div>
+                    <div className="text-sm text-gray-600">15-minute sessions simulating real exam pressure</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-xl">📊</span>
+                  <div>
+                    <div className="font-semibold">Detailed Performance Analytics</div>
+                    <div className="text-sm text-gray-600">Track progress across topics and question types</div>
+                  </div>
+                </li>
+              </ul>
+            </Card>
+
+            <Card hover>
+              <h3 className="font-bold mb-4 text-xl flex items-center gap-2">
+                💪 Study Strategies
+              </h3>
+              <ul className="text-gray-600 space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <span>📚</span>
+                  <span>Start with Study Mode for immediate AI-powered feedback</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>🎯</span>
+                  <span>Use Mixed difficulty to experience exam-like variety</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>🤖</span>
+                  <span>Increase AI question ratio for fresh practice content</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>⏰</span>
+                  <span>Practice with time limits to build exam confidence</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>🔍</span>
+                  <span>Review AI explanations to understand specification requirements</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>🔄</span>
+                  <span>Retake quizzes to see different AI-generated questions</span>
+                </li>
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
